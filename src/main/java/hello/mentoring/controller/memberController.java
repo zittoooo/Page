@@ -79,12 +79,11 @@ public class memberController {
     @GetMapping("/{memberId}/edit")
     public String editForm(@PathVariable Long memberId, Model model) {
         Member member = memberRepository.findById(memberId);
-        model.addAttribute("member", member);
+
         MemberForm form = new MemberForm();
         form.setId(member.getId());
         form.setMemberName(member.getMemberName());
         form.setAddress(member.getAddress());
-
 //        form.setAttachFile(member.getAttachFile());
         model.addAttribute("form", form);
         return "editForm";
