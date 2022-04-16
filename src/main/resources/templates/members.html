@@ -23,15 +23,15 @@
         <table class="table">
             <thead>
             <tr>
-                <th>삭제</th>
+                <th>체크</th>
                 <th>ID</th>
                 <th>이름</th>
                 <th>주소</th>
                 <th>파일</th>
+                <th>삭제버튼</th>
             </tr>
             </thead>
             <tbody>
-
             <tr th:each="member : ${members}">
                 <form th:action="@{/basic/members/{memberId}(memberId=${member.id})}" th:method="post">
 
@@ -45,21 +45,16 @@
                     <td th:text="${member.address}">주소</td>
                     <td th:if="${member.attachFile}" th:text="${member.getAttachFile().getUploadFileName()}">file</td>
                     <td>
-                        <button class="btn btn-primary float-end" type="submit"
+                        <button class="btn btn-danger float-end" type="submit"
                                 onclick="location.href='items.html'"
-                                th:onclick="|location.href='@{/basic/members/{memberId}(memberId=${member.id})}'|">
-                            삭제
+                                th:onclick="|location.href='@{/basic/members/{memberId}(memberId=${member.id})}'|">삭제
                         </button>
                     </td>
-
                 </form>
             </tr>
             </tbody>
         </table>
-
     </div>
-
-
 </div> <!-- /container -->
 </body>
 </html>
