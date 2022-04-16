@@ -4,7 +4,9 @@ import hello.mentoring.model.MemberForm;
 import hello.mentoring.model.UploadFile;
 import hello.mentoring.repository.FileStore;
 import hello.mentoring.repository.MemberRepository;
+import hello.mentoring.service.MemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,38 +19,36 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/basic/members")
-@RequiredArgsConstructor
 public class memberController {
 
-    private final MemberRepository memberRepository;
-    private final FileStore fileStore;
+    private final MemberService memberService;
 
-    @Value("${file.dir}")
-    private String fileDir;
+    @Autowired
+    public memberController(MemberService memberService) {
+        this.memberService = memberService;
+    }
 
     //회원 목록 출력
     @GetMapping
     public String members(Model model) {
-        List<Member> members = memberRepository.findAll();
+        List<Member> members = memberService.findAll();
         model.addAttribute("members", members);
-
         return "members";
     }
 
     // 회원 조회
     @GetMapping("/{memberId}")
     public String member(@PathVariable long memberId, Model model) {
-        Member member = memberRepository.findById(memberId);
+        Member member = memberService.findById(memberId);
         model.addAttribute("member", member);
-        System.out.println("조회: " +  member.getAttachFile().getUploadFileName());
         return "member";
     }
 
     // 회원 삭제
     @PostMapping("/{memberId}")
     public String deleteMember(@PathVariable long memberId, Model model) {
-        memberRepository.delete(memberId);
-        List<Member> members = memberRepository.findAll();
+        memberService.deleteMember(memberId);
+        List<Member> members = memberService.findAll();
         model.addAttribute(members);
 
         return "redirect:/basic/members";
@@ -62,14 +62,13 @@ public class memberController {
 
     @PostMapping("/add")
     public String saveMember(@ModelAttribute MemberForm form, RedirectAttributes redirectAttributes) throws IOException {
-        UploadFile uploadFile = fileStore.storeFile(form.getAttachFile());
-
+        UploadFile uploadFile = memberService.storeFile(form.getAttachFile());
         Member member = new Member();
         member.setMemberName(form.getMemberName());
         member.setAddress(form.getAddress());
         member.setAttachFile(uploadFile);
 
-        Member savedMember = memberRepository.save(member);
+        Member savedMember = memberService.save(member);
         redirectAttributes.addAttribute("memberId", savedMember.getId());
         redirectAttributes.addAttribute("status", true);
         return "redirect:/basic/members/{memberId}";
@@ -78,7 +77,7 @@ public class memberController {
     //회원 수정
     @GetMapping("/{memberId}/edit")
     public String editForm(@PathVariable Long memberId, Model model) {
-        Member member = memberRepository.findById(memberId);
+        Member member = memberService.findById(memberId);
 
         MemberForm form = new MemberForm();
         form.setId(member.getId());
@@ -92,18 +91,13 @@ public class memberController {
 
     @PostMapping("/{memberId}/edit")
     public String edit(@PathVariable Long memberId, @ModelAttribute MemberForm form) throws IOException {
-        System.out.println("수정 후 " + form.getAttachFile());
-        UploadFile uploadFile = fileStore.storeFile(form.getAttachFile());
+        UploadFile uploadFile = memberService.storeFile(form.getAttachFile());
 
         Member member = new Member();
         member.setMemberName(form.getMemberName());
         member.setAddress(form.getAddress());
         member.setAttachFile(uploadFile);
-        Member updateMember = memberRepository.update(memberId, member);
-
+        Member updateMember = memberService.update(memberId, member);
         return "redirect:/basic/members/{memberId}";
     }
-
-
-
 }
