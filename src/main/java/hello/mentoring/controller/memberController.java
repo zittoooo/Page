@@ -84,6 +84,7 @@ public class memberController {
         form.setId(member.getId());
         form.setMemberName(member.getMemberName());
         form.setAddress(member.getAddress());
+//        form.setUploadFileName(member.getAttachFile().getUploadFileName());
 //        form.setAttachFile(member.getAttachFile());
         model.addAttribute("form", form);
         return "editForm";
