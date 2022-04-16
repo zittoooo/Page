@@ -36,7 +36,7 @@
                 <form th:action="@{/basic/members/{memberId}(memberId=${member.id})}" th:method="post">
 
                     <td>
-                        <input type="checkbox" name="${member.check}" class="form-check-input">
+                        <input type="checkbox" name="${member.check}" class="form-check-input">  <!-- 타임리프 사용하는쪽으로 바꿔보기-->
                         <!--                    <label for="check" class="form-check-label">삭제</label>-->
                     </td>
                     <td><a href="item.html" th:href="@{/basic/members/{memberId}(memberId=${member.id})}"

@@ -1,6 +1,7 @@
 package hello.mentoring.service;
 
 import hello.mentoring.model.Member;
+import hello.mentoring.model.MemberForm;
 import hello.mentoring.model.UploadFile;
 import hello.mentoring.repository.FileStore;
 import hello.mentoring.repository.MemberRepository;
@@ -26,6 +27,24 @@ public class MemberService {
     @Value("${file.dir}")
     private String fileDir;
 
+
+    public Member makeMember(MemberForm form, UploadFile uploadFile) {
+        Member member = new Member();
+        member.setCheck(false);
+        member.setMemberName(form.getMemberName());
+        member.setAddress(form.getAddress());
+        member.setAttachFile(uploadFile);
+        return member;
+    }
+
+    public MemberForm makeForm(Member member){
+        MemberForm form = new MemberForm();
+        form.setId(member.getId());
+        form.setMemberName(member.getMemberName());
+        form.setAddress(member.getAddress());
+        return form;
+    }
+
     public List<Member> findAll() {
         return memberRepository.findAll();
     }
@@ -38,8 +57,16 @@ public class MemberService {
         return memberRepository.save(member);
     }
 
-    public Member update(Long memberId, Member member) {
+    public Member updateRepository(Long memberId, Member member) {
         return memberRepository.update(memberId, member);
+    }
+
+    public Member updateMember(MemberForm form, UploadFile uploadFile) {
+        Member member = new Member();
+        member.setMemberName(form.getMemberName());
+        member.setAddress(form.getAddress());
+        member.setAttachFile(uploadFile);
+        return member;
     }
 
     public void deleteMember(Long memberId) {

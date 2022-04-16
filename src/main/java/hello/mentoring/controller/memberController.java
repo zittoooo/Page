@@ -63,11 +63,7 @@ public class memberController {
     @PostMapping("/add")
     public String saveMember(@ModelAttribute MemberForm form, RedirectAttributes redirectAttributes) throws IOException {
         UploadFile uploadFile = memberService.storeFile(form.getAttachFile());
-        Member member = new Member();
-        member.setMemberName(form.getMemberName());
-        member.setAddress(form.getAddress());
-        member.setAttachFile(uploadFile);
-
+        Member member = memberService.makeMember(form, uploadFile);
         Member savedMember = memberService.save(member);
         redirectAttributes.addAttribute("memberId", savedMember.getId());
         redirectAttributes.addAttribute("status", true);
@@ -78,13 +74,7 @@ public class memberController {
     @GetMapping("/{memberId}/edit")
     public String editForm(@PathVariable Long memberId, Model model) {
         Member member = memberService.findById(memberId);
-
-        MemberForm form = new MemberForm();
-        form.setId(member.getId());
-        form.setMemberName(member.getMemberName());
-        form.setAddress(member.getAddress());
-//        form.setUploadFileName(member.getAttachFile().getUploadFileName());
-//        form.setAttachFile(member.getAttachFile());
+        MemberForm form = memberService.makeForm(member);
         model.addAttribute("form", form);
         return "editForm";
     }
@@ -92,12 +82,8 @@ public class memberController {
     @PostMapping("/{memberId}/edit")
     public String edit(@PathVariable Long memberId, @ModelAttribute MemberForm form) throws IOException {
         UploadFile uploadFile = memberService.storeFile(form.getAttachFile());
-
-        Member member = new Member();
-        member.setMemberName(form.getMemberName());
-        member.setAddress(form.getAddress());
-        member.setAttachFile(uploadFile);
-        Member updateMember = memberService.update(memberId, member);
+        Member member = memberService.updateMember(form, uploadFile);
+        Member updateMember = memberService.updateRepository(memberId, member);
         return "redirect:/basic/members/{memberId}";
     }
 }
