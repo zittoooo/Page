@@ -4,6 +4,7 @@ import hello.mentoring.model.Member;
 import hello.mentoring.model.MemberForm;
 import hello.mentoring.model.UploadFile;
 import hello.mentoring.repository.FileStore;
+import hello.mentoring.repository.MemberRepo;
 import hello.mentoring.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,11 +16,11 @@ import java.util.List;
 
 @Service
 public class MemberService {
-    private final MemberRepository memberRepository;
+    private final MemberRepo memberRepository;
     private final FileStore fileStore;
 
-    @Autowired
-    public MemberService(MemberRepository memberRepository, FileStore fileStore) {
+//    @Autowired
+    public MemberService(MemberRepo memberRepository, FileStore fileStore) {
         this.memberRepository = memberRepository;
         this.fileStore = fileStore;
     }
