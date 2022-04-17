@@ -30,7 +30,7 @@ public class MemberService {
 
     public Member makeMember(MemberForm form, UploadFile uploadFile) {
         Member member = new Member();
-        member.setCheck(false);
+        member.setCheck(form.isCheck());
         member.setMemberName(form.getMemberName());
         member.setAddress(form.getAddress());
         member.setAttachFile(uploadFile);

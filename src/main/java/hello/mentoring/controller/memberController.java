@@ -62,6 +62,9 @@ public class memberController {
 
     @PostMapping("/add")
     public String saveMember(@ModelAttribute MemberForm form, RedirectAttributes redirectAttributes) throws IOException {
+        if (checkValidation(form) == false) {
+            return "addForm";
+        }
         UploadFile uploadFile = memberService.storeFile(form.getAttachFile());
         Member member = memberService.makeMember(form, uploadFile);
         Member savedMember = memberService.save(member);
@@ -81,9 +84,23 @@ public class memberController {
 
     @PostMapping("/{memberId}/edit")
     public String edit(@PathVariable Long memberId, @ModelAttribute MemberForm form) throws IOException {
+        if (checkValidation(form) == false) {
+            return "redirect:/basic/members/{memberId}/edit";
+        }
+
         UploadFile uploadFile = memberService.storeFile(form.getAttachFile());
         Member member = memberService.updateMember(form, uploadFile);
         Member updateMember = memberService.updateRepository(memberId, member);
         return "redirect:/basic/members/{memberId}";
     }
+
+    // 입력 안한 것 있을 때
+    private Boolean checkValidation(MemberForm form) {
+        if (form.getMemberName().isEmpty() || form.getAddress().isEmpty() || form.getAttachFile().isEmpty()) {
+            System.out.println("정확히 입력해 주세요.");
+            return false;
+        }
+        return true;
+    }
+
 }
