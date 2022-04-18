@@ -1,13 +1,15 @@
 package hello.mentoring.controller;
 
+import hello.mentoring.dto.FileDto;
 import hello.mentoring.model.MemberForm;
 import hello.mentoring.model.UploadFile;
-import hello.mentoring.repository.FileStore;
-import hello.mentoring.repository.MemberRepository;
 import hello.mentoring.service.MemberService;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,16 +17,18 @@ import hello.mentoring.model.Member;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 
+@Slf4j
 @Controller
 @RequestMapping("/basic/members")
-public class memberController {
+public class MemberController {
 
     private final MemberService memberService;
 
     @Autowired
-    public memberController(MemberService memberService) {
+    public MemberController(MemberService memberService) {
         this.memberService = memberService;
     }
 
@@ -53,6 +57,18 @@ public class memberController {
 
         return "redirect:/basic/members";
     }
+
+    // 파일 다운로드
+    @GetMapping("/attach/{memberId}")
+    public ResponseEntity<Resource> downloadAttach(@PathVariable Long memberId) throws MalformedURLException {
+        Member member = memberService.findById(memberId);
+        FileDto fileDto = memberService.makeResourceContentDisposition(member);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, fileDto.getContentDisposition())
+                .body(fileDto.getResource());
+    }
+
 
     // 회원 추가
     @GetMapping("/add")
@@ -93,6 +109,7 @@ public class memberController {
         Member updateMember = memberService.updateRepository(memberId, member);
         return "redirect:/basic/members/{memberId}";
     }
+
 
     // 입력 안한 것 있을 때
     private Boolean checkValidation(MemberForm form) {

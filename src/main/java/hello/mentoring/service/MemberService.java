@@ -1,5 +1,6 @@
 package hello.mentoring.service;
 
+import hello.mentoring.dto.FileDto;
 import hello.mentoring.model.Member;
 import hello.mentoring.model.MemberForm;
 import hello.mentoring.model.UploadFile;
@@ -7,10 +8,12 @@ import hello.mentoring.repository.FileStore;
 import hello.mentoring.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 
 @Service
@@ -75,6 +78,19 @@ public class MemberService {
 
     public UploadFile storeFile(MultipartFile attachFile) throws IOException {
         return fileStore.storeFile(attachFile);
+    }
+
+    public FileDto makeResourceContentDisposition(Member member) throws MalformedURLException {
+        String storeFileName = member.getAttachFile().getStoreFileName();
+        String uploadFileName = member.getAttachFile().getUploadFileName();
+        UrlResource resource = new UrlResource("file:" + fileStore.getFullPath(storeFileName));
+//        log.info("uploadFileName={}", uploadFileName);
+        String contentDisposition = "attachment; filename=\"" + uploadFileName + "\"";
+
+        FileDto fileDto = new FileDto();
+        fileDto.setResource(resource);
+        fileDto.setContentDisposition(contentDisposition);
+        return fileDto;
     }
 
 }
