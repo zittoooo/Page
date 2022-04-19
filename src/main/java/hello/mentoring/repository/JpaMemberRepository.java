@@ -50,8 +50,12 @@ public class JpaMemberRepository implements MemberRepo {
 
     @Override
     public Member update(Long memberId, Member update) {
-
-        return null;
+        MemberDao find = findByIdDao(memberId);
+        find.setMemberName(update.getMemberName());
+        find.setAddress(update.getAddress());
+        find.setUploadFileName(update.getAttachFile().getUploadFileName());
+        find.setStoreFileName(update.getAttachFile().getStoreFileName());
+        return update;
     }
 
     @Override
