@@ -5,15 +5,18 @@ import hello.mentoring.model.MemberForm;
 import hello.mentoring.model.UploadFile;
 import hello.mentoring.repository.FileStore;
 import hello.mentoring.repository.MemberRepo;
-//import hello.mentoring.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.swing.text.html.Option;
+import java.io.File;
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.List;
+import java.util.Optional;
 
 @Transactional
 public class MemberService {
@@ -72,11 +75,18 @@ public class MemberService {
     }
 
     public void deleteMember(Long memberId) {
+        memberRepository.findById(memberId).ifPresent(member -> {
+            fileStore.deleteFile(member);
+        });
         memberRepository.delete(memberId);
     }
 
     public UploadFile storeFile(MultipartFile attachFile) throws IOException {
         return fileStore.storeFile(attachFile);
+    }
+
+    public void deleteFile(Member member) {
+        fileStore.deleteFile(member);
     }
 
 }

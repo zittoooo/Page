@@ -1,5 +1,6 @@
 package hello.mentoring.repository;
 
+import hello.mentoring.model.Member;
 import hello.mentoring.model.UploadFile;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -30,5 +31,20 @@ public class FileStore {
         multipartFile.transferTo(new File(getFullPath(storeFileName)));
 
         return new UploadFile(multipartFile.getOriginalFilename(), storeFileName);
+    }
+
+    public void deleteFile(Member member) {
+        File file = new File(getFullPath(member.getAttachFile().getStoreFileName()));
+        System.out.println(getFullPath(member.getAttachFile().getStoreFileName()));
+
+        if (file.exists()) {
+            if (file.delete()) {
+                System.out.println("MemberService.deleteMember 파일 삭제 성공");
+            } else {
+                System.out.println("MemberService.deleteMember 파일 삭제 실패");
+            }
+        } else {
+            System.out.println("MemberService.deleteMember 파일이 존재하지 않습니다.");
+        }
     }
 }
