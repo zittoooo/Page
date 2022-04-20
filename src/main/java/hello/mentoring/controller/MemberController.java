@@ -11,6 +11,7 @@ import hello.mentoring.model.Member;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.List;
 
 @Controller
@@ -80,12 +81,8 @@ public class MemberController {
 
     @PostMapping("/{memberId}/edit")
     public String edit(@PathVariable Long memberId, @ModelAttribute MemberForm form) throws IOException {
-        if (checkValidation(form) == false) {
-            return "redirect:/basic/members/{memberId}/edit";
-        }
-
-        UploadFile uploadFile = memberService.storeFile(form.getAttachFile());
-        Member member = memberService.updateMember(form, uploadFile);
+        Member findMember = memberService.findById(memberId);
+        Member member = memberService.updateMember(form, findMember);
         Member updateMember = memberService.updateRepository(memberId, member);
         return "redirect:/basic/members/{memberId}";
     }

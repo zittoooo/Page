@@ -66,17 +66,31 @@ public class MemberService {
         return memberRepository.update(memberId, member);
     }
 
-    public Member updateMember(MemberForm form, UploadFile uploadFile) {
-        Member member = new Member();
-        member.setMemberName(form.getMemberName());
-        member.setAddress(form.getAddress());
-        member.setAttachFile(uploadFile);
-        return member;
+    public Member updateMember(MemberForm form, Member findMember) throws IOException {
+
+        if (!form.getMemberName().isEmpty()) {
+            findMember.setMemberName(form.getMemberName());
+
+        }
+        if (!form.getAddress().isEmpty()) {
+            findMember.setAddress(form.getAddress());
+
+        }
+        if (!form.getAttachFile().isEmpty()) {
+            fileStore.deleteFile(findMember);
+            UploadFile uploadFile = fileStore.storeFile(form.getAttachFile());
+            findMember.setAttachFile(uploadFile);
+        }
+
+//        System.out.println(findMember);
+        return findMember;
     }
+
 
     public void deleteMember(Long memberId) {
         memberRepository.findById(memberId).ifPresent(member -> {
             fileStore.deleteFile(member);
+//            memberRepository.delete(member.getId());
         });
         memberRepository.delete(memberId);
     }
