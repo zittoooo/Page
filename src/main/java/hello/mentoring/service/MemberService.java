@@ -1,5 +1,6 @@
 package hello.mentoring.service;
 
+import hello.mentoring.dto.FileDto;
 import hello.mentoring.model.Member;
 import hello.mentoring.model.MemberForm;
 import hello.mentoring.model.UploadFile;
@@ -7,6 +8,7 @@ import hello.mentoring.repository.FileStore;
 import hello.mentoring.repository.MemberRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -163,4 +165,5 @@ public class MemberService {
     public void deleteFile(Member member) {
         fileStore.deleteFile(member);
     }
+
 }

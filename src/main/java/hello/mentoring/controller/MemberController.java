@@ -1,9 +1,15 @@
 package hello.mentoring.controller;
 
+import hello.mentoring.dto.FileDto;
 import hello.mentoring.model.MemberForm;
 import hello.mentoring.model.UploadFile;
 import hello.mentoring.service.MemberService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -11,9 +17,10 @@ import hello.mentoring.model.Member;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
-import java.sql.SQLOutput;
+import java.net.MalformedURLException;
 import java.util.List;
 
+@Slf4j
 @Controller
 @RequestMapping("/basic/members")
 public class MemberController {
@@ -49,8 +56,18 @@ public class MemberController {
         model.addAttribute(members);
         return "redirect:/basic/members";
     }
+  
+    // 파일 다운로드
+    @GetMapping("/attach/{memberId}")
+    public ResponseEntity<Resource> downloadAttach(@PathVariable Long memberId) throws MalformedURLException {
+        Member member = memberService.findById(memberId);
+        FileDto fileDto = memberService.makeResourceContentDisposition(member);
 
-    // 왜 url을 이렇게 했으?
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, fileDto.getContentDisposition())
+                .body(fileDto.getResource());
+    }
+
     // 회원 추가
     @GetMapping("/add")
     public String addForm(@ModelAttribute MemberForm form) {
