@@ -23,7 +23,6 @@ public class MemberService {
     private final MemberRepo memberRepository;
     private final FileStore fileStore;
 
-//    @Autowired
     public MemberService(MemberRepo memberRepository, FileStore fileStore) {
         this.memberRepository = memberRepository;
         this.fileStore = fileStore;
@@ -32,10 +31,9 @@ public class MemberService {
     @Value("${file.dir}")
     private String fileDir;
 
-
-    public Member makeMember(MemberForm form, UploadFile uploadFile) {
+    public Member makeMember(MemberForm form) throws IOException {
+        UploadFile uploadFile = fileStore.storeFile(form.getAttachFile());
         Member member = new Member();
-        member.setCheck(form.isCheck());
         member.setMemberName(form.getMemberName());
         member.setAddress(form.getAddress());
         member.setAttachFile(uploadFile);
@@ -48,6 +46,11 @@ public class MemberService {
         form.setMemberName(member.getMemberName());
         form.setAddress(member.getAddress());
         return form;
+    }
+
+    public MemberForm findMemberConvertForm(Long memberId) {
+        Member member = findById(memberId);
+        return makeForm(member);
     }
 
     public List<Member> findAll() {
@@ -66,33 +69,31 @@ public class MemberService {
         return memberRepository.update(memberId, member);
     }
 
-    public Member updateMember(MemberForm form, Member findMember) throws IOException {
+    public Member updateMember(Long memberId, MemberForm form) throws IOException {
+        Member findMember = findById(memberId);
 
         if (!form.getMemberName().isEmpty()) {
             findMember.setMemberName(form.getMemberName());
-
         }
         if (!form.getAddress().isEmpty()) {
             findMember.setAddress(form.getAddress());
-
         }
         if (!form.getAttachFile().isEmpty()) {
             fileStore.deleteFile(findMember);
             UploadFile uploadFile = fileStore.storeFile(form.getAttachFile());
             findMember.setAttachFile(uploadFile);
         }
-
-//        System.out.println(findMember);
         return findMember;
+        // 모든 전처리가 끝나고
     }
 
 
-    public void deleteMember(Long memberId) {
+    public List<Member> deleteMember(Long memberId) {
         memberRepository.findById(memberId).ifPresent(member -> {
             fileStore.deleteFile(member);
-//            memberRepository.delete(member.getId());
+            memberRepository.delete(member.getId());
         });
-        memberRepository.delete(memberId);
+        return memberRepository.findAll();
     }
 
     public UploadFile storeFile(MultipartFile attachFile) throws IOException {
@@ -102,5 +103,4 @@ public class MemberService {
     public void deleteFile(Member member) {
         fileStore.deleteFile(member);
     }
-
 }

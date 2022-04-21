@@ -26,9 +26,10 @@ public class MemberController {
     }
 
     //회원 목록 출력
+    // findAll 하는데 repository를 바로 열어도 되는데 왜 서비스를 나눴는지?
     @GetMapping
     public String members(Model model) {
-        List<Member> members = memberService.findAll();
+        List<Member> members = memberService.findAll();  // 왜 List를 썻는지?
         model.addAttribute("members", members);
         return "members";
     }
@@ -44,13 +45,12 @@ public class MemberController {
     // 회원 삭제
     @PostMapping("/{memberId}")
     public String deleteMember(@PathVariable long memberId, Model model) {
-        memberService.deleteMember(memberId);
-        List<Member> members = memberService.findAll();
+        List<Member> members = memberService.deleteMember(memberId);
         model.addAttribute(members);
-
         return "redirect:/basic/members";
     }
 
+    // 왜 url을 이렇게 했으?
     // 회원 추가
     @GetMapping("/add")
     public String addForm(@ModelAttribute MemberForm form) {
@@ -62,9 +62,10 @@ public class MemberController {
         if (checkValidation(form) == false) {
             return "addForm";
         }
-        UploadFile uploadFile = memberService.storeFile(form.getAttachFile());
-        Member member = memberService.makeMember(form, uploadFile);
+        // 파일 업로드와 DB 저장 중에 뭘 먼저 해야 하는지? -> 문제가 생겼을 때 복구 비용 최소화 할 수 있도록
+        Member member = memberService.makeMember(form);
         Member savedMember = memberService.save(member);
+        // 저장하다가 실패하면?
         redirectAttributes.addAttribute("memberId", savedMember.getId());
         redirectAttributes.addAttribute("status", true);
         return "redirect:/basic/members/{memberId}";
@@ -73,16 +74,14 @@ public class MemberController {
     //회원 수정
     @GetMapping("/{memberId}/edit")
     public String editForm(@PathVariable Long memberId, Model model) {
-        Member member = memberService.findById(memberId);
-        MemberForm form = memberService.makeForm(member);
+        MemberForm form = memberService.findMemberConvertForm(memberId);
         model.addAttribute("form", form);
         return "editForm";
     }
 
     @PostMapping("/{memberId}/edit")
     public String edit(@PathVariable Long memberId, @ModelAttribute MemberForm form) throws IOException {
-        Member findMember = memberService.findById(memberId);
-        Member member = memberService.updateMember(form, findMember);
+        Member member = memberService.updateMember(memberId, form);
         Member updateMember = memberService.updateRepository(memberId, member);
         return "redirect:/basic/members/{memberId}";
     }
