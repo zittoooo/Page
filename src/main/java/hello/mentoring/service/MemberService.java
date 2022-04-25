@@ -5,6 +5,7 @@ import hello.mentoring.model.Member;
 import hello.mentoring.model.MemberForm;
 import hello.mentoring.model.UploadFile;
 import hello.mentoring.repository.FileStore;
+import hello.mentoring.repository.MemberFileRepository;
 import hello.mentoring.repository.MemberRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,10 +24,12 @@ import java.util.Optional;
 public class MemberService {
     private final MemberRepo memberRepository;
     private final FileStore fileStore;
+    private final MemberFileRepository memberFileRepository;
 
-    public MemberService(MemberRepo memberRepository, FileStore fileStore) {
+    public MemberService(MemberRepo memberRepository, FileStore fileStore, MemberFileRepository fileRepository) {
         this.memberRepository = memberRepository;
         this.fileStore = fileStore;
+        this.memberFileRepository = fileRepository;
     }
 
     @Value("${file.dir}")
@@ -106,7 +109,9 @@ public class MemberService {
 
         Member member = makeMember(form);
         MemberDao memberDao = makeMemberDao(member);
-        return memberRepository.save(memberDao);
+        Long id = memberRepository.save(memberDao);
+        memberFileRepository.saveOnFile(memberDao);
+        return id;
     }
 
     /**
