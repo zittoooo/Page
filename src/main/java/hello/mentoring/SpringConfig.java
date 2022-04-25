@@ -1,8 +1,6 @@
 package hello.mentoring;
 
-import hello.mentoring.repository.FileStore;
-import hello.mentoring.repository.JpaMemberRepository;
-import hello.mentoring.repository.MemberRepo;
+import hello.mentoring.repository.*;
 //import hello.mentoring.repository.MemberRepository;
 import hello.mentoring.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +21,7 @@ public class SpringConfig {
 
     @Bean
     public MemberService memberService() {
-        return new MemberService(memberRepository(), fileStore());
+        return new MemberService(memberRepository(), fileStore(), FileRepository());
     }
 
     @Bean
@@ -36,5 +34,8 @@ public class SpringConfig {
     public FileStore fileStore() {
         return new FileStore();
     }
+
+    @Bean
+    public MemberFileRepository FileRepository() { return new MemberFileRepositoryImpl(); }
 
 }
