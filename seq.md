@@ -60,6 +60,7 @@ sequenceDiagram
     participant V as View
     participant S as MemberService 
     participant R as MemberRepository
+    participant F as MemberFileRepository 
 
     Note left of C: 회원 수정
     alt
@@ -83,6 +84,14 @@ sequenceDiagram
     S->>FileStore:deleteFile(Member)
     S->>+FileStore:storeFile(form.attachFile)
     FileStore->>-S:UploadFile
+
+
+    S->>R:update(memberId, member)
+    R->>DB:em.find()
+    DB->>R:memberDao
+    R->>R:회원 정보 수정
+    S->>F:updateOnFile(MemberDao)
+
     S->>-C:Member
     C->>+S:updateRepository(memberId, Member)
     S->>+R:update(memberId, Member)
