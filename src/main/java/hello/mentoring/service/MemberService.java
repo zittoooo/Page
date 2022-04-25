@@ -154,13 +154,13 @@ public class MemberService {
      */
     public List<Member> deleteMember(Long memberId) {
         memberRepository.findById(memberId).ifPresent(member -> {
+            memberRepository.delete(member.getId());
             fileStore.deleteFile(member);
             try {
                 memberFileRepository.deleteOnFile(memberId);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            memberRepository.delete(member.getId());
         });
         return memberRepository.findAll();
     }
