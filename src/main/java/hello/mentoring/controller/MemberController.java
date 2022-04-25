@@ -81,7 +81,6 @@ public class MemberController {
     @PostMapping("/{memberId}/edit")
     public String edit(@PathVariable Long memberId, @ModelAttribute MemberForm form) throws IOException {
         Member member = memberService.updateMember(memberId, form);
-        Member updateMember = memberService.updateRepository(memberId, member);
         return "redirect:/basic/members/{memberId}";
     }
 

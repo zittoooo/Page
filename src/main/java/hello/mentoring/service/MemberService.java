@@ -112,16 +112,6 @@ public class MemberService {
     }
 
     /**
-     * DB에서 memberId로 member를 찾아서 수정 내용이 담긴 member로 수정
-     * @param memberId
-     * @param member
-     * @return 수정된 Member
-     */
-    public Member updateRepository(Long memberId, Member member) {
-        return memberRepository.update(memberId, member);
-    }
-
-    /**
      * memberId로 member를 찾아서 유저가 입력한 form 내용으로 수정
      * @param memberId
      * @param form
@@ -142,7 +132,9 @@ public class MemberService {
             UploadFile uploadFile = fileStore.storeFile(form.getAttachFile());
             findMember.setAttachFile(uploadFile);
         }
-        return findMember;
+        Member updateMember = memberRepository.update(memberId, findMember);
+        memberFileRepository.updateOnFile(makeMemberDao(findMember));
+        return updateMember;
         // 모든 전처리가 끝나고
     }
 
