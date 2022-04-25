@@ -49,7 +49,12 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
 
     @Override
     public void updateOnFile(MemberDao memberDao) {
-
+        try {
+            deleteOnFile(memberDao.getId());
+            saveOnFile(memberDao);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
