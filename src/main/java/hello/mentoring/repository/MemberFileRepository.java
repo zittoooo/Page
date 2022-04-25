@@ -8,5 +8,5 @@ public interface MemberFileRepository {
     void saveOnFile(MemberDao memberDao) throws IOException;
     MemberDao findByIdOnFile(Long memberId);
     void updateOnFile(MemberDao memberDao);
-    void deleteOnFile(Long id);
+    void deleteOnFile(Long id) throws IOException;
 }

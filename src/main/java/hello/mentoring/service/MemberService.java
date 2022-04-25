@@ -7,18 +7,12 @@ import hello.mentoring.model.UploadFile;
 import hello.mentoring.repository.FileStore;
 import hello.mentoring.repository.MemberFileRepository;
 import hello.mentoring.repository.MemberRepo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.swing.text.html.Option;
-import java.io.File;
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.List;
-import java.util.Optional;
 
 @Transactional
 public class MemberService {
@@ -66,6 +60,9 @@ public class MemberService {
 
     public MemberDao makeMemberDao(Member m) {
         MemberDao mDao = new MemberDao();
+        if (m.getId() != null) {
+            mDao.setId(m.getId());
+        }
         mDao.setMemberName(m.getMemberName());
         mDao.setAddress(m.getAddress());
         mDao.setUploadFileName(m.getAttachFile().getUploadFileName());
@@ -108,9 +105,9 @@ public class MemberService {
     public Long save(MemberForm form) throws IOException {
 
         Member member = makeMember(form);
-        MemberDao memberDao = makeMemberDao(member);
-        Long id = memberRepository.save(memberDao);
-        memberFileRepository.saveOnFile(memberDao);
+        Long id = memberRepository.save(makeMemberDao(member));
+        member.setId(id);
+        memberFileRepository.saveOnFile(makeMemberDao(member));
         return id;
     }
 
@@ -158,6 +155,11 @@ public class MemberService {
     public List<Member> deleteMember(Long memberId) {
         memberRepository.findById(memberId).ifPresent(member -> {
             fileStore.deleteFile(member);
+            try {
+                memberFileRepository.deleteOnFile(memberId);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             memberRepository.delete(member.getId());
         });
         return memberRepository.findAll();
