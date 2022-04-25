@@ -1,5 +1,6 @@
 package hello.mentoring.repository;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -12,6 +13,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class MemberFileRepositoryImpl implements MemberFileRepository {
@@ -44,7 +46,28 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
 
     @Override
     public MemberDao findByIdOnFile(Long memberId) {
-        return null;
+        Optional<String> out = null;
+        // 파일에서 해당 id를 가진 줄 찾기
+        try {
+            fileReader = new FileReader(fileDir + "fileDB");
+            bufferedReader = new BufferedReader(fileReader);
+            File file = new File(fileDir + "fileDB");
+            out = Files.lines(file.toPath())
+                    .filter(line -> line.contains("{\"id\":" + memberId))
+                    .findAny();
+            bufferedReader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        MemberDao memberDao = null;
+        try {
+            memberDao = mapper.readValue(out.get(), MemberDao.class);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return memberDao;
     }
 
     @Override

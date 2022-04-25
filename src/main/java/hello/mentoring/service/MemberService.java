@@ -85,6 +85,7 @@ public class MemberService {
      * @return List<Member>
      */
     public List<Member> findAll() {
+
         return memberRepository.findAll();
     }
 
@@ -94,6 +95,9 @@ public class MemberService {
      * @return Member
      */
     public Member findById(Long memberId) {
+        MemberDao dao = memberFileRepository.findByIdOnFile(memberId);
+        System.out.println(dao.getMemberName());
+
         return memberRepository.findById(memberId).get();
     }
 
