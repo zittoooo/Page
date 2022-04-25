@@ -63,10 +63,9 @@ public class MemberController {
             return "addForm";
         }
         // 파일 업로드와 DB 저장 중에 뭘 먼저 해야 하는지? -> 문제가 생겼을 때 복구 비용 최소화 할 수 있도록
-        Member member = memberService.makeMember(form);
-        Member savedMember = memberService.save(member);
+       Long savedId = memberService.save(form);
         // 저장하다가 실패하면?
-        redirectAttributes.addAttribute("memberId", savedMember.getId());
+        redirectAttributes.addAttribute("memberId", savedId);
         redirectAttributes.addAttribute("status", true);
         return "redirect:/basic/members/{memberId}";
     }

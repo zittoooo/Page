@@ -18,17 +18,10 @@ public class JpaMemberRepository implements MemberRepo {
     }
 
     @Override
-    public Member save(Member member) {
-        MemberDao memberDao = new MemberDao();
-        memberDao.setMemberName(member.getMemberName());
-        memberDao.setAddress(member.getAddress());
-        memberDao.setUploadFileName(member.getAttachFile().getUploadFileName());
-        memberDao.setStoreFileName(member.getAttachFile().getStoreFileName());
-
+    public Long save(MemberDao memberDao) {
         em.persist(memberDao);
         em.flush();
-        member.setId(memberDao.getId());
-        return member;
+        return memberDao.getId();
     }
 
     @Override

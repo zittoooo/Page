@@ -1,5 +1,6 @@
 package hello.mentoring.service;
 
+import hello.mentoring.dao.MemberDao;
 import hello.mentoring.model.Member;
 import hello.mentoring.model.MemberForm;
 import hello.mentoring.model.UploadFile;
@@ -60,6 +61,15 @@ public class MemberService {
         return form;
     }
 
+    public MemberDao makeMemberDao(Member m) {
+        MemberDao mDao = new MemberDao();
+        mDao.setMemberName(m.getMemberName());
+        mDao.setAddress(m.getAddress());
+        mDao.setUploadFileName(m.getAttachFile().getUploadFileName());
+        mDao.setStoreFileName(m.getAttachFile().getStoreFileName());
+        return mDao;
+    }
+
     /**
      * DB에서 memberId로 member를 찾아 form으로 변환
      * @param memberId
@@ -89,11 +99,14 @@ public class MemberService {
 
     /**
      * DB에 인자로 들어온 member 저장하고 반환
-     * @param member
+     * @param form
      * @return Member
      */
-    public Member save(Member member) {
-       return memberRepository.save(member);
+    public Long save(MemberForm form) throws IOException {
+
+        Member member = makeMember(form);
+        MemberDao memberDao = makeMemberDao(member);
+        return memberRepository.save(memberDao);
     }
 
     /**
