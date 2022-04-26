@@ -137,7 +137,7 @@ public class MemberService {
             findMember.setAttachFile(uploadFile);
         }
         Member updateMember = memberRepository.update(memberId, findMember);
-        memberFileRepository.updateOnFile(makeMemberDao(findMember));
+        memberFileRepository.updateOnFile(makeMemberDao(updateMember));
         return updateMember;
         // 모든 전처리가 끝나고
     }

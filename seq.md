@@ -24,6 +24,18 @@ sequenceDiagram
     end
 
 
+
+```
+
+
+```mermaid
+sequenceDiagram
+    participant C as MemberController
+    participant V as View
+    participant S as MemberService 
+    participant R as MemberRepository
+    participant F as MemberFileRepository
+
     Note left of C: 회원 목록 출력
     alt
     C->>+S: findAll()
@@ -35,11 +47,12 @@ sequenceDiagram
     C->>V:List<Member>
     end
 
-
     Note left of C: 회원 상세 조회
     alt
     V->>+C:memberId
     C->>+S:findById(memberId)
+    S->>F:findByIdOnFile(memberId)
+    F->>S:MemberDao
     S->>+R:findById(memberId)
     R->>+DB:em.find()    
     DB->>-R:MemberDao
@@ -47,10 +60,6 @@ sequenceDiagram
     S->>-C: Member
     C->>V:Member
     end
-
-
-
-
 
 ```
 
@@ -72,33 +81,29 @@ sequenceDiagram
     R->>-S:Member
     S->>-C:MemberForm
     C->>V:MemberForm
+    end
 
-
-    V->>+C:MemberId, MemberForm
+    alt
+    V->>C:MemberId, MemberForm
     C->>+S:updateMember(memberId, MemberForm)
-    S->>+R:findById(memberId)
-    R->>+DB:em.find()
-    DB->>-R:MemberDao
-    R->>-S:Member
+    S->>R:findById(memberId)
+    R->>DB:em.find()
+    DB->>R:MemberDao
+    R->>S:Member
     Note over S:찾아온 Member정보를 From으로 전달된 정보로 수정
-    S->>FileStore:deleteFile(Member)
-    S->>+FileStore:storeFile(form.attachFile)
-    FileStore->>-S:UploadFile
-
-
-    S->>R:update(memberId, member)
+    opt 업로드 파일을 수정했다면
+        S->>FileStore:deleteFile(Member)
+        S->>+FileStore:storeFile(form.attachFile)
+        FileStore->>-S:UploadFile
+    end
+    S->>+R:update(memberId, member)
     R->>DB:em.find()
     DB->>R:memberDao
     R->>R:회원 정보 수정
-    S->>F:updateOnFile(MemberDao)
-
-    S->>-C:Member
-    C->>+S:updateRepository(memberId, Member)
-    S->>+R:update(memberId, Member)
-    R->>+DB:findByIdDao(memberId)
-    DB->>-R:MemberDao
     R->>-S: Member
-    S->>-C: Member
+    S->>F:updateOnFile(makeMemberDao(Member))
+    Note over F:deleteOnFile -> saveOnFile
+    S->>-C:updatedMember
     end
 
 ```
