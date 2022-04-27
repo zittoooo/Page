@@ -26,12 +26,24 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
     private BufferedReader bufferedReader;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private String filePath = fileDir + "fileDB";
+
+    private File prepareFileRead(String file) throws FileNotFoundException {
+        fileReader = new FileReader(fileDir + file);
+        bufferedReader = new BufferedReader(fileReader);
+        File openFile = new File(fileDir + file);
+        return openFile;
+    }
+
+    private BufferedWriter prepareFileWrite(String file) throws IOException {
+        fileWriter = new FileWriter(fileDir + file, true);
+        bufferedWriter = new BufferedWriter(fileWriter);
+        return bufferedWriter;
+    }
+
     @Override
     public void saveOnFile(MemberDao memberDao) throws IOException {
-
-        fileWriter = new FileWriter(fileDir + "fileDB", true);
-        bufferedWriter = new BufferedWriter(fileWriter);
-
+        bufferedWriter = prepareFileWrite("fileDB");
         ObjectMapper mapper = new ObjectMapper();
         String jsonStr = mapper.writeValueAsString(memberDao);
         try {
@@ -49,9 +61,7 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
         Optional<String> out = null;
         // 파일에서 해당 id를 가진 줄 찾기
         try {
-            fileReader = new FileReader(fileDir + "fileDB");
-            bufferedReader = new BufferedReader(fileReader);
-            File file = new File(fileDir + "fileDB");
+            File file = prepareFileRead("fileDB");
             out = Files.lines(file.toPath())
                     .filter(line -> line.contains("{\"id\":" + memberId))
                     .findAny();
@@ -83,9 +93,7 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
     @Override
     public void deleteOnFile(Long id){
         try {
-            fileReader = new FileReader(fileDir + "fileDB");
-            bufferedReader = new BufferedReader(fileReader);
-            File file = new File(fileDir + "fileDB");
+            File file = prepareFileRead("fileDB");
             List<String> out = Files.lines(file.toPath())
                     .filter(line-> !line.contains("{\"id\":" + id))
                     .collect(Collectors.toList());
@@ -94,4 +102,5 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
             e.printStackTrace();
         }
     }
+
 }
