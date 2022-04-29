@@ -2,9 +2,7 @@ package hello.mentoring.aop;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
@@ -17,18 +15,37 @@ import java.util.Date;
 @Component
 public class LogAop {
 
-    @Pointcut("execution(* hello.mentoring..*.*(..))")
-    private void log() {}
-
-    @Before("log()")
+    @Before("hello.mentoring.aop.Pointcuts.log()")
     public void before(JoinPoint joinPoint) {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
 
-        log.info(String.valueOf(method.getDeclaringClass()) + " " + method.getName());
+        log.info("[before] {}", joinPoint.getSignature());
+
         Object[] args = joinPoint.getArgs();
         for (Object arg: args) {
             log.info("parameter value = {}", arg);
         }
     }
+
+    @AfterReturning(value="hello.mentoring.aop.Pointcuts.log()", returning = "result")
+    public void doRetutn(JoinPoint joinPoint, Object result) {
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        Method method = signature.getMethod();
+
+        log.info("[return] {}", joinPoint.getSignature());
+
+        Object[] args = joinPoint.getArgs();
+        for (Object arg: args) {
+            log.info("parameter value = {}", arg);
+        }
+    }
+
+    @AfterThrowing(value="hello.mentoring.aop.Pointcuts.log()", throwing = "ex")
+    public void doThrowing(JoinPoint joinPoint, Exception ex) {
+        log.info("[ex] {} message={}", joinPoint.getSignature(), ex.getMessage());
+    }
+
+
+
 }
