@@ -5,15 +5,14 @@ import hello.mentoring.model.Member;
 import hello.mentoring.model.UploadFile;
 
 import javax.persistence.EntityManager;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class JpaMemberRepository implements MemberRepo {
+public class JpaMemberRepositoryImpl implements MemberRepository {
     private final EntityManager em;
 
-    public JpaMemberRepository(EntityManager em) {
+    public JpaMemberRepositoryImpl(EntityManager em) {
         this.em = em;
     }
 
