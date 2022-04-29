@@ -6,7 +6,8 @@ import hello.mentoring.model.MemberForm;
 import hello.mentoring.model.UploadFile;
 import hello.mentoring.repository.FileStore;
 import hello.mentoring.repository.MemberFileRepository;
-import hello.mentoring.repository.MemberRepo;
+//import hello.mentoring.repository.JpaMemberRepository;
+import hello.mentoring.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,11 +17,11 @@ import java.util.List;
 
 @Transactional
 public class MemberService {
-    private final MemberRepo memberRepository;
+    private final MemberRepository memberRepository;
     private final FileStore fileStore;
     private final MemberFileRepository memberFileRepository;
 
-    public MemberService(MemberRepo memberRepository, FileStore fileStore, MemberFileRepository fileRepository) {
+    public MemberService(MemberRepository memberRepository, FileStore fileStore, MemberFileRepository fileRepository) {
         this.memberRepository = memberRepository;
         this.fileStore = fileStore;
         this.memberFileRepository = fileRepository;
