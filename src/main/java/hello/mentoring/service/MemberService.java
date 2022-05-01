@@ -56,6 +56,7 @@ public class MemberService {
         form.setId(member.getId());
         form.setMemberName(member.getMemberName());
         form.setAddress(member.getAddress());
+        form.setFileName(member.getAttachFile().getUploadFileName());
         return form;
     }
 
