@@ -17,9 +17,23 @@ function remove() {
         dataType: 'text',
         // contentType: 'application/json; charset=utf-8',
         data: {
-            'ids': JSON.stringify(idList)
+            'ids': idList
         },
-    }).fail(function (error) {
+    }).done(function(res) {
+        // console.log(res);
+        idList.forEach((id) => {
+            let tr = document.querySelectorAll('.member');
+            // console.log(tr.textContent);
+            tr.forEach(elem => {
+                if (elem.getAttribute('id') === id) {
+                    // tr.parentElement.removeChild(tr);
+                    elem.parentElement.removeChild(elem);
+                }
+            })
+
+        })
+    }).
+    fail(function (error) {
         alert(JSON.stringify(error));
     })
 }

@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.SQLOutput;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -35,24 +36,18 @@ public class MemberController {
     @GetMapping
     public String members(Model model) {
         List<Member> memberList = memberService.findAll();
-        List<MemberForm> members = new ArrayList<>();
-        for (Member member: memberList) {
-            members.add(memberService.makeForm(member));
-        }
-
-        model.addAttribute("members", members);
+        model.addAttribute("members", memberList);
         return "members";
     }
 
     @PostMapping
-    public String multicheck(@RequestParam String ids) {
-        log.info("memberform.checked = {}", ids);
-
-
-//        for (int i = 0; i < ids.size(); i++) {
-//            System.out.println(ids[i]);
-//        }
-
+    public String multicheck(@RequestParam String ids, Model model) {
+        List<String> IDs = new ArrayList<String>(Arrays.asList(ids.split(",")));
+        for (String id : IDs) {
+            memberService.deleteMember(Long.parseLong(id));
+        }
+//        List<Member> memberList = memberService.findAll();
+//        model.addAttribute("members", memberList);
         return "redirect:/basic/members";
     }
 
