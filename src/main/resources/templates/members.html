@@ -44,7 +44,7 @@
                            th:text="${member.id}">회원 id</a></td>
                     <td th:text="${member.memberName}">이름</td>
                     <td th:text="${member.address}">주소</td>
-                    <td th:if="${member.fileName}" th:text="${member.fileName}">file</td>
+                    <td th:if="${member.attachFile.getUploadFileName()}" th:text="${member.attachFile.getUploadFileName()}">file</td>
                     <td>
 <!--                        <button class="btn btn-danger float-end" type="button"-->
 <!--                                onclick="location.href='items.html'"-->

@@ -1,10 +1,8 @@
 package hello.mentoring.controller;
 
 import hello.mentoring.model.MemberForm;
-import hello.mentoring.model.UploadFile;
 import hello.mentoring.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,9 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import hello.mentoring.model.Member;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,7 +28,6 @@ public class MemberController {
     }
 
     //회원 목록 출력
-    // findAll 하는데 repository를 바로 열어도 되는데 왜 서비스를 나눴는지?
     @GetMapping
     public String members(Model model) {
         List<Member> memberList = memberService.findAll();
@@ -71,7 +66,7 @@ public class MemberController {
     // 왜 url을 이렇게 했으?
     // 회원 추가
     @GetMapping("/add")
-    public String addForm(@ModelAttribute MemberForm form) {
+    public String addForm() {
         return "addForm";
     }
 
@@ -80,7 +75,6 @@ public class MemberController {
         if (checkValidation(form) == false) {
             return "addForm";
         }
-        // 파일 업로드와 DB 저장 중에 뭘 먼저 해야 하는지? -> 문제가 생겼을 때 복구 비용 최소화 할 수 있도록
        Long savedId = memberService.save(form);
         // 저장하다가 실패하면?
         redirectAttributes.addAttribute("memberId", savedId);
@@ -91,7 +85,7 @@ public class MemberController {
     //회원 수정
     @GetMapping("/{memberId}/edit")
     public String editForm(@PathVariable Long memberId, Model model) {
-        MemberForm form = memberService.findMemberConvertForm(memberId);
+        MemberForm form = memberService.findMember2Form(memberId);
         model.addAttribute("form", form);
         return "editForm";
     }
