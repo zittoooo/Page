@@ -8,7 +8,6 @@ import hello.mentoring.repository.FileStore;
 import hello.mentoring.repository.MemberFileRepository;
 import hello.mentoring.repository.MemberRepository;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,6 +27,21 @@ public class MemberService {
     }
 
     /**
+     * 사용자가 입력한 form내용을 Member로 변환
+     * @param form
+     * @return Member
+     * @throws IOException
+     */
+    public Member form2Member(MemberForm form) {
+        Member member = Member.builder()
+                .check(false)
+                .memberName(form.getMemberName())
+                .address(form.getAddress())
+                .build();
+        return member;
+    }
+
+    /**
      * Member를 MemberForm으로 변환
      * @param member
      * @return MemberForm
@@ -42,21 +56,6 @@ public class MemberService {
                 .build();
     }
 
-    /**
-     * 사용자가 입력한 form내용을 Member로 변환
-     * @param form
-     * @return Member
-     * @throws IOException
-     */
-    public Member form2Member(MemberForm form, UploadFile uploadFile) {
-        Member member = Member.builder()
-                .check(false)
-                .memberName(form.getMemberName())
-                .address(form.getAddress())
-                .attachFile(uploadFile).build();
-        return member;
-    }
-
     public MemberDao member2Dao(Member m) {
         MemberDao mDao = new MemberDao();
         if (m.getId() != null) {
@@ -67,6 +66,15 @@ public class MemberService {
         mDao.setUploadFileName(m.getAttachFile().getUploadFileName());
         mDao.setStoreFileName(m.getAttachFile().getStoreFileName());
         return mDao;
+    }
+
+    public Member dao2Member(MemberDao dao) {
+        return Member.builder()
+                .id(dao.getId())
+                .memberName(dao.getMemberName())
+                .address(dao.getAddress())
+                .attachFile(new UploadFile(dao.getUploadFileName(), dao.getStoreFileName()))
+                .build();
     }
 
     /**
@@ -99,6 +107,7 @@ public class MemberService {
     public Member findById(Long memberId) {
         Optional<MemberDao> memberDao = memberRepository.findById(memberId);
         MemberDao member = memberDao.get();
+        memberFileRepository.findByNameOnFile(member);
 //        if (member == null)
 //            throw new NullPointerException();
         return Member.builder()
@@ -110,16 +119,23 @@ public class MemberService {
     }
 
     /**
-     * 회원의 파일 저장, DB에 회원 저장, 파일DB에 저장
+     * 회원의 파일 저장, DB에 회원 저장, 파일DB에 저장 IOException이 발생하면 다 지우고 사용자에게 다시 입력받음
      * @param form
      * @return Member
      */
     public Long save(MemberForm form) throws IOException {
+        Member member = form2Member(form);
+
         UploadFile uploadFile = fileStore.storeFile(form.getAttachFile());
-        Member member = form2Member(form, uploadFile);
-        Long id = memberRepository.save(member2Dao(member));
-        member.setId(id);
+        member.setAttachFile(uploadFile);
         memberFileRepository.saveOnFile(member2Dao(member));
+
+        Long id = memberRepository.save(member2Dao(member));
+
+//        DB 저장하다가 문제생기면
+//        fileStore.deleteFile(member);
+//        memberFileRepository.deleteOnFile(member);
+        member.setId(id);
         return id;
     }
 
@@ -140,28 +156,27 @@ public class MemberService {
             findMember.setAddress(form.getAddress());
         }
         if (!form.getAttachFile().isEmpty()) {
-            fileStore.deleteFile(findMember);
+            fileStore.deleteFile(member2Dao(findMember));
             UploadFile uploadFile = fileStore.storeFile(form.getAttachFile());
             findMember.setAttachFile(uploadFile);
         }
+        memberFileRepository.updateOnFile(member2Dao(findMember));
         Member updateMember = memberRepository.update(memberId, findMember);
-        memberFileRepository.updateOnFile(member2Dao(updateMember));
         return updateMember;
         // 모든 전처리가 끝나고
     }
-
 
     /**
      * DB 에서 memberId로 회원찾고 회원의 파일 지우고 DB 에서 member 지운 뒤 회원 목록 리턴
      * @param memberId
      * @return List<Member>
      */
-    public List<Member> deleteMember(Long memberId) {
+    public List<Member> deleteMemberById(Long memberId) {
         memberRepository.findById(memberId).ifPresent(memberDao -> {
             try {
-                fileStore.deleteFile(findById(memberId));
-                memberFileRepository.deleteOnFile(memberId);
-                memberRepository.delete(memberId);
+                fileStore.deleteFile(memberDao);
+                memberFileRepository.deleteOnFile(memberDao);
+                memberRepository.delete(memberDao.getId());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -169,22 +184,19 @@ public class MemberService {
         return findAll();
     }
 
-
     /**
-     * 유저가 업로드한 파일을 파일 저장소에 저장하고 UploadFile 반환
-     * @param attachFile
-     * @return UploadFile
-     * @throws IOException
+     * fileStore -> FileRepository -> DB 순서로 삭제
+     * @param dao
      */
-    public UploadFile storeFile(MultipartFile attachFile) throws IOException {
-        return fileStore.storeFile(attachFile);
-    }
-
-    /**
-     * 파일 저장소에서 파일 삭제
-     * @param member
-     */
-    public void deleteFile(Member member) {
-        fileStore.deleteFile(member);
+    public void deleteMemberByDao(MemberDao dao) {
+        fileStore.deleteFile(dao);
+        try {
+            memberFileRepository.deleteOnFile(dao);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (dao.getId() != null) {
+            memberRepository.delete(dao.getId());
+        }
     }
 }

@@ -3,6 +3,7 @@ package hello.mentoring.repository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hello.mentoring.dao.MemberDao;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.*;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class MemberFileRepositoryImpl implements MemberFileRepository {
     @Value("${file.dir}")
     private String fileDir;
@@ -47,14 +49,24 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
 
     @Override
     public void saveOnFile(MemberDao memberDao) throws IOException {
-            bufferedWriter = prepareFileWrite("fileDB");
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonStr = mapper.writeValueAsString(memberDao);
+        bufferedWriter = prepareFileWrite("fileDB");
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonStr = null;
+        try {
+            jsonStr = mapper.writeValueAsString(memberDao);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        try {
             bufferedWriter.write(jsonStr);
             bufferedWriter.newLine();
             bufferedWriter.flush();
             bufferedWriter.close();
-
+//            throw new IOException();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new IOException(jsonStr);
+        }
     }
 
     @Override
@@ -88,16 +100,12 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
     }
 
     @Override
-    public void deleteOnFile(MemberDao dao){
-        try {
+    public void deleteOnFile(MemberDao dao) throws IOException {
             File file = prepareFileRead("fileDB");
             List<String> out = Files.lines(file.toPath())
                     .filter(line->!line.contains("\"memberName\":" + "\""+dao.getMemberName()+"\""))
                     .collect(Collectors.toList());
             Files.write(file.toPath(), out, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 }

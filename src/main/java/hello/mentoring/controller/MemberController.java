@@ -1,5 +1,8 @@
 package hello.mentoring.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import hello.mentoring.dao.MemberDao;
 import hello.mentoring.model.MemberForm;
 import hello.mentoring.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +30,23 @@ public class MemberController {
         this.memberService = memberService;
     }
 
+
+    @ExceptionHandler
+    public String IOEx(IOException e) {
+        System.out.println(e.getMessage());
+
+        ObjectMapper mapper = new ObjectMapper();
+        MemberDao memberDao = null;
+        try {
+            memberDao = mapper.readValue(e.getMessage(), MemberDao.class);
+        } catch (JsonProcessingException ex) {
+            ex.printStackTrace();
+        }
+
+        memberService.deleteMemberByDao(memberDao);
+        return "addForm";
+    }
+
     //회원 목록 출력
     @GetMapping
     public String members(Model model) {
@@ -39,7 +59,7 @@ public class MemberController {
     public String multicheck(@RequestParam String ids, Model model) {
         List<String> IDs = new ArrayList<String>(Arrays.asList(ids.split(",")));
         for (String id : IDs) {
-            memberService.deleteMember(Long.parseLong(id));
+            memberService.deleteMemberById(Long.parseLong(id));
         }
 //        List<Member> memberList = memberService.findAll();
 //        model.addAttribute("members", memberList);
@@ -58,12 +78,11 @@ public class MemberController {
     // 회원 삭제
     @PostMapping("/{memberId}")
     public String deleteMember(@PathVariable long memberId, Model model) {
-        List<Member> members = memberService.deleteMember(memberId);
+        List<Member> members = memberService.deleteMemberById(memberId);
         model.addAttribute(members);
         return "redirect:/basic/members";
     }
 
-    // 왜 url을 이렇게 했으?
     // 회원 추가
     @GetMapping("/add")
     public String addForm() {
@@ -76,7 +95,6 @@ public class MemberController {
             return "addForm";
         }
        Long savedId = memberService.save(form);
-        // 저장하다가 실패하면?
         redirectAttributes.addAttribute("memberId", savedId);
         redirectAttributes.addAttribute("status", true);
         return "redirect:/basic/members/{memberId}";
