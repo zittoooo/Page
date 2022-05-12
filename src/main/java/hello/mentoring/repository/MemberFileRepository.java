@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public interface MemberFileRepository {
     void saveOnFile(MemberDao memberDao) throws IOException;
-    MemberDao findByIdOnFile(Long memberId);
-    void updateOnFile(MemberDao memberDao);
-    void deleteOnFile(Long id) throws IOException;
+    MemberDao findByNameOnFile(MemberDao memberDao);
+    void updateOnFile(MemberDao memberDao) throws IOException;
+    void deleteOnFile(MemberDao memberDao) throws IOException;
 }
