@@ -42,7 +42,6 @@ public class MemberController {
         } catch (JsonProcessingException ex) {
             ex.printStackTrace();
         }
-
         memberService.deleteMemberByDao(memberDao);
         return "addForm";
     }
@@ -61,8 +60,8 @@ public class MemberController {
         for (String id : IDs) {
             memberService.deleteMemberById(Long.parseLong(id));
         }
-//        List<Member> memberList = memberService.findAll();
-//        model.addAttribute("members", memberList);
+        List<Member> members = memberService.findAll();
+        model.addAttribute("members", members);
         return "redirect:/basic/members";
     }
 
@@ -111,7 +110,7 @@ public class MemberController {
     @PostMapping("/{memberId}/edit")
     public String edit(@PathVariable Long memberId, @ModelAttribute MemberForm form) throws IOException {
         Member member = memberService.updateMember(memberId, form);
-        return "redirect:/basic/members/{memberId}";
+        return "redirect:/basic/members";
     }
 
     // 입력 안한 것 있을 때
