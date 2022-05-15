@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -89,7 +88,7 @@ public class MemberService {
 
     /**
      * DB 에서 모든 member를 찾아 반환
-     * @return List<Member>
+     * @return List<Member> - DB의 모든 회원
      */
     public List<Member> findAll() {
         return memberRepository.findAll()
@@ -101,21 +100,12 @@ public class MemberService {
 
     /**
      * DB에서 memberID로 회원을 찾아 반환
-     * @param memberId
-     * @return Member
+     * @param memberId - 조회할 id
+     * @return Member - 조회된 회원
      */
     public Member findById(Long memberId) {
-        Optional<MemberDao> memberDao = memberRepository.findById(memberId);
-        MemberDao member = memberDao.get();
-        memberFileRepository.findByNameOnFile(member);
-//        if (member == null)
-//            throw new NullPointerException();
-        return Member.builder()
-                .id(member.getId())
-                .memberName(member.getMemberName())
-                .address(member.getAddress())
-                .attachFile(new UploadFile(member.getUploadFileName(), member.getStoreFileName()))
-                .build();
+        MemberDao member = memberRepository.findById(memberId);
+        return dao2Member(member);
     }
 
     /**
@@ -124,17 +114,11 @@ public class MemberService {
      * @return Member
      */
     public Long save(MemberForm form) throws IOException {
-        Member member = form2Member(form);
-
         UploadFile uploadFile = fileStore.storeFile(form.getAttachFile());
+        Member member = form2Member(form);
         member.setAttachFile(uploadFile);
         memberFileRepository.saveOnFile(member2Dao(member));
-
         Long id = memberRepository.save(member2Dao(member));
-
-//        DB 저장하다가 문제생기면
-//        fileStore.deleteFile(member);
-//        memberFileRepository.deleteOnFile(member);
         member.setId(id);
         return id;
     }
@@ -148,22 +132,17 @@ public class MemberService {
      */
     public Member updateMember(Long memberId, MemberForm form) throws IOException {
         Member findMember = findById(memberId);
+        Member updateMember = form2Member(form);
 
-        if (!form.getMemberName().isEmpty()) {
-            findMember.setMemberName(form.getMemberName());
-        }
-        if (!form.getAddress().isEmpty()) {
-            findMember.setAddress(form.getAddress());
-        }
-        if (!form.getAttachFile().isEmpty()) {
+        if (form.getAttachFile().isEmpty()) {
+            updateMember.setAttachFile(findMember.getAttachFile());
+        } else {
             fileStore.deleteFile(member2Dao(findMember));
-            UploadFile uploadFile = fileStore.storeFile(form.getAttachFile());
-            findMember.setAttachFile(uploadFile);
+            updateMember.setAttachFile(fileStore.storeFile(form.getAttachFile()));
         }
-        memberFileRepository.updateOnFile(member2Dao(findMember));
-        Member updateMember = memberRepository.update(memberId, findMember);
-        return updateMember;
-        // 모든 전처리가 끝나고
+        memberFileRepository.updateOnFile(member2Dao(findMember), member2Dao(updateMember));
+        MemberDao updated = memberRepository.update(member2Dao(findMember), member2Dao(updateMember));
+        return dao2Member(updated);
     }
 
     /**
@@ -171,16 +150,15 @@ public class MemberService {
      * @param memberId
      * @return List<Member>
      */
-    public List<Member> deleteMemberById(Long memberId) {
-        memberRepository.findById(memberId).ifPresent(memberDao -> {
-            try {
-                fileStore.deleteFile(memberDao);
-                memberFileRepository.deleteOnFile(memberDao);
-                memberRepository.delete(memberDao.getId());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+    public List<Member> deleteMemberById(Long memberId){
+        MemberDao memberDao = memberRepository.findById(memberId);
+        try {
+            fileStore.deleteFile(memberDao);
+            memberFileRepository.deleteOnFileByName(memberDao);
+            memberRepository.delete(memberDao.getId());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return findAll();
     }
 
