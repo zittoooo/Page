@@ -93,14 +93,32 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
         return memberDao;
     }
 
+    /**
+     * update 객체를 저장하고 업데이트 전 객체를 지운다
+     * @param find - 기존에 저장된 객체
+     * @param update - 새로 업데이트된 객체
+     * @throws IOException
+     */
     @Override
-    public void updateOnFile(MemberDao memberDao) throws IOException {
-        deleteOnFile(memberDao);
-        saveOnFile(memberDao);
+    public void updateOnFile(MemberDao find, MemberDao update) throws IOException {
+        saveOnFile(update);
+        deleteOnFile(find);
     }
 
     @Override
     public void deleteOnFile(MemberDao dao) throws IOException {
+        File file = prepareFileRead("fileDB");
+        List<String> out = Files.lines(file.toPath())
+                .filter(line->!line.contains("\"memberName\":" + "\""+dao.getMemberName()+"\"," +
+                        "\"address\":" + "\"" + dao.getAddress()+"\"," +
+                        "\"uploadFileName\":" + "\"" +dao.getUploadFileName()+"\"," +
+                        "\"storeFileName\":" + "\"" +dao.getStoreFileName()+"\""))
+                .collect(Collectors.toList());
+        Files.write(file.toPath(), out, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    @Override
+    public void deleteOnFileByName(MemberDao dao) throws IOException {
             File file = prepareFileRead("fileDB");
             List<String> out = Files.lines(file.toPath())
                     .filter(line->!line.contains("\"memberName\":" + "\""+dao.getMemberName()+"\""))
@@ -108,4 +126,12 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
             Files.write(file.toPath(), out, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
+    @Override
+    public void deleteOnFileById(MemberDao dao) throws IOException {
+        File file = prepareFileRead("fileDB");
+        List<String> out = Files.lines(file.toPath())
+                .filter(line->!line.contains("{\"id\":" + dao.getId()))
+                .collect(Collectors.toList());
+        Files.write(file.toPath(), out, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
 }
