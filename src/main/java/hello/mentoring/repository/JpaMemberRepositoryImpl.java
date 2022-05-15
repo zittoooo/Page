@@ -1,8 +1,6 @@
 package hello.mentoring.repository;
 
 import hello.mentoring.dao.MemberDao;
-import hello.mentoring.model.Member;
-
 import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
@@ -22,8 +20,14 @@ public class JpaMemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public Optional<MemberDao> findById(Long id) {
-        return Optional.ofNullable(em.find(MemberDao.class, id));
+    public MemberDao findById(Long id) {
+        Optional<MemberDao> dao = Optional.ofNullable(em.find(MemberDao.class, id));
+
+        if (dao.isPresent()) {
+            return dao.get();
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -33,12 +37,9 @@ public class JpaMemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public Member update(Long memberId, Member update) {
-        MemberDao find = findByIdDao(memberId);
-        find.setMemberName(update.getMemberName());
-        find.setAddress(update.getAddress());
-        find.setUploadFileName(update.getAttachFile().getUploadFileName());
-        find.setStoreFileName(update.getAttachFile().getStoreFileName());
+    public MemberDao update(MemberDao find, MemberDao update) {
+        delete(find.getId());
+        save(update);
         return update;
     }
 

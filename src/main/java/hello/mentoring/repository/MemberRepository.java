@@ -8,8 +8,8 @@ import java.util.Optional;
 
 public interface MemberRepository {
     Long save(MemberDao Member);
-    Optional<MemberDao> findById(Long id);
+    MemberDao findById(Long id);
     List<MemberDao> findAll();
-    Member update(Long memberId, Member update);
+    MemberDao update(MemberDao find, MemberDao update);
     void delete(Long memberId);
 }
