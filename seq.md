@@ -1,40 +1,39 @@
 ```mermaid
 sequenceDiagram
-    participant C as MemberController
     participant V as View
-    participant S as MemberService 
+    participant C as MemberController
+    participant S as MemberService
+    participant FS as FileStore
+    participant FR as MemberFileRepository
     participant R as MemberRepository
-    participant F as MemberFileRepository 
 
 
     Note left of C: 회원 추가
     alt
     V->>C:form
     C->>S:save(form)
-    S->>+S:makeMember(form)
-    S->>+FileStore:storeFile(form.getAttachFile())
-    FileStore->>-S:UploadFile
-    S->>-S:Member
-    S->>+S:makeMemberDao(Member)
+    S->>+FS:storeFile(form.getAttachFile())
+    FS->>-S:UploadFile
+    S->>S:form2Member(form)
+    S->>FR:saveOnFile(MemberDao)
     S->>+R:save(MemberDao)
-    R->>+DB:save(MemberDao)
-    R->>-S:MemberId
-    S->>F:saveOnFile(MemberDao)
-    S->>-C:MemberId
+    R->>DB:save(MemberDao)
+    R->>-S:memberId
+    S->>C:memberId
+    C->>V:memberId
     end
-
-
 
 ```
 
 
 ```mermaid
 sequenceDiagram
-    participant C as MemberController
     participant V as View
-    participant S as MemberService 
+    participant C as MemberController
+    participant S as MemberService
+    participant FS as FileStore
+    participant FR as MemberFileRepository
     participant R as MemberRepository
-    participant F as MemberFileRepository
 
     Note left of C: 회원 목록 출력
     alt
@@ -42,7 +41,7 @@ sequenceDiagram
     S->>+R:findAll();
     R->>+DB: select m from MemberDao m
     DB->>-R: List<memberDao>
-    R->>-S: List<Member>
+    R->>-S: List<MemberDao>
     S->>-C: List<Member>
     C->>V:List<Member>
     end
@@ -51,13 +50,11 @@ sequenceDiagram
     alt
     V->>+C:memberId
     C->>+S:findById(memberId)
-    S->>F:findByIdOnFile(memberId)
-    F->>S:MemberDao
     S->>+R:findById(memberId)
     R->>+DB:em.find()    
     DB->>-R:MemberDao
-    R->>-S:Member
-    S->>-C: Member
+    R->>-S:MemberDao
+    S->>-C:dao2Member(MemberDao)
     C->>V:Member
     end
 
@@ -65,73 +62,79 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant C as MemberController
     participant V as View
-    participant S as MemberService 
-    participant R as MemberRepository
-    participant F as MemberFileRepository 
+    participant C as MemberController
+    participant S as MemberService
+    participant FS as FileStore
+    participant FR as MemberFileRepository
+    participant R as MemberRepository 
 
     Note left of C: 회원 수정
     alt
     V->>+C:MemberId
-    C->>+S:findMemberConvertForm(memberId)
+    C->>+S:findMember2Form(memberId)
     S->>+R:findById(memberId)
-    R->>+DB:findById(memberId)
+    R->>+DB:em.find(memberId)
     DB->>-R:MemberDao
-    R->>-S:Member
-    S->>-C:MemberForm
+    R->>-S:MemberDao
+    S->>S:dao2Member
+    S->>S:member2Form
+    S->>C:MemberForm
     C->>V:MemberForm
     end
 
     alt
     V->>C:MemberId, MemberForm
+    Note over S:MemberForm은 update할 Member로 만들고, MemberId로 회원 찾아오기
     C->>+S:updateMember(memberId, MemberForm)
+    S->>S:form2Member(MemberForm)
     S->>R:findById(memberId)
     R->>DB:em.find()
     DB->>R:MemberDao
-    R->>S:Member
-    Note over S:찾아온 Member정보를 From으로 전달된 정보로 수정
+    R->>S:findMember
     opt 업로드 파일을 수정했다면
-        S->>FileStore:deleteFile(Member)
-        S->>+FileStore:storeFile(form.attachFile)
-        FileStore->>-S:UploadFile
+        S->>FS:deleteFile(findMemberDao)
+        S->>+FS:storeFile(form.attachFile)
+        FS->>-S:UploadFile
     end
-    S->>+R:update(memberId, member)
-    R->>DB:em.find()
-    DB->>R:memberDao
-    R->>R:회원 정보 수정
-    R->>-S: Member
-    S->>F:updateOnFile(makeMemberDao(Member))
-    Note over F:deleteOnFile -> saveOnFile
-    S->>-C:updatedMember
+    S->>FR:updateOnFile(Member2Dao(findMember), Member2Dao(updateMember))
+    FR->FR:saveOnFile(updateMemberDao)
+    FR->FR:deleteOnFile(findMemberDao)
+    S->>+R:update(findMemberDao, updateMemberDao)
+    R->R:delete(findMemberDao.id)
+    R->>DB:remove
+    R->R:save(updateMemberDao)
+    R->>DB:em.persist(updateMemberDao)
+    R->>S:updateMemberDao
+    S->>C: dao2Member(updateMemberDao)
     end
 
 ```
 
 ```mermaid
 sequenceDiagram
-    participant C as MemberController
     participant V as View
-    participant S as MemberService 
+    participant C as MemberController
+    participant S as MemberService
+    participant FS as FileStore
+    participant FR as MemberFileRepository
     participant R as MemberRepository
-    participant F as MemberFileRepository
 
     Note left of C: 회원 삭제
     alt
     V->>C:MemberId
-    C->>S:deleteMember(MemberId)
+    C->>S:deleteMemberById(MemberId)
     S->>R:findById(MemberId)
     opt 회원이 존재한다면
+        S->>FS:deleteFile(MemberDao)
+        S->>FR:deletoOnFileByNme(MemberDao)
         S->>R:delete(MemberId)
         R->>DB:em.remove(MemberDao)
-        S->>FileStore:deleteFile(Member)
-        S->>F:deletoOnFile(MemberId)
-
     end
     S->>+R:findAll()
     R->>+DB:select m from MemberDao m
-    DB->>-R: List<Member>
-    R->>-S:List<Member>
+    DB->>-R: List<MemberDao>
+    R->>-S:List<MemberDao>
     S->>C:List<Member>
     C->>V:List<Member>
     end
