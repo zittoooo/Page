@@ -158,6 +158,7 @@ public class MemberService {
             memberRepository.delete(memberDao.getId());
         } catch (IOException e) {
             e.printStackTrace();
+            deleteMemberByDao(memberDao);  //? ㅋㅋㅋ
         }
         return findAll();
     }
@@ -167,14 +168,15 @@ public class MemberService {
      * @param dao
      */
     public void deleteMemberByDao(MemberDao dao) {
-        fileStore.deleteFile(dao);
         try {
+            fileStore.deleteFile(dao);
             memberFileRepository.deleteOnFile(dao);
+            if (dao.getId() != null) {
+                memberRepository.delete(dao.getId());
+            }
         } catch (IOException e) {
             e.printStackTrace();
-        }
-        if (dao.getId() != null) {
-            memberRepository.delete(dao.getId());
+            deleteMemberByDao(dao);
         }
     }
 }

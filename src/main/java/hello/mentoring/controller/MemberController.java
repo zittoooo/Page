@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import hello.mentoring.model.Member;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
@@ -32,18 +33,21 @@ public class MemberController {
 
 
     @ExceptionHandler
-    public String IOEx(IOException e) {
-        System.out.println(e.getMessage());
-
-        ObjectMapper mapper = new ObjectMapper();
+    public ModelAndView IOEx(IOException e) {
+//        System.out.println(e.getMessage());
         MemberDao memberDao = null;
-        try {
-            memberDao = mapper.readValue(e.getMessage(), MemberDao.class);
-        } catch (JsonProcessingException ex) {
-            ex.printStackTrace();
+        if (!e.getMessage().isEmpty()) {
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                memberDao = mapper.readValue(e.getMessage(), MemberDao.class);
+            } catch (JsonProcessingException ex) {
+                ex.printStackTrace();
+            }
+            memberService.deleteMemberByDao(memberDao);
         }
-        memberService.deleteMemberByDao(memberDao);
-        return "addForm";
+        ModelAndView view = new ModelAndView("redirect:/basic/members/add");
+        view.addObject("status", true);
+        return view;
     }
 
     //회원 목록 출력

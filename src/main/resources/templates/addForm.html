@@ -20,6 +20,8 @@
 
     <h4 class="mb-3">회원 정보 입력</h4>
 
+    <div th:if="${param.status}" th:text="'다시 입력해 주세요'"></div>
+
     <form action="item.html" th:action method="post" enctype="multipart/form-data">
         <div>
             <label for="memberName">이름</label>
