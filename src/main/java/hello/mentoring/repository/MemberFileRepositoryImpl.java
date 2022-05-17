@@ -12,6 +12,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static hello.mentoring.utils.MemberConst.*;
 
 @Slf4j
 public class MemberFileRepositoryImpl implements MemberFileRepository {
@@ -76,7 +77,7 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
         try {
             File file = prepareFileRead("fileDB");
             out = Files.lines(file.toPath())
-                    .filter(line -> line.contains("\"memberName\":" + "\""+dao.getMemberName()+"\""))
+                    .filter(line -> line.contains(JS_NAME + ":" + "\""+dao.getMemberName()+"\""))
                     .findAny();
             bufferedReader.close();
         } catch (IOException e) {
@@ -109,10 +110,11 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
     public void deleteOnFile(MemberDao dao) throws IOException {
         File file = prepareFileRead("fileDB");
         List<String> out = Files.lines(file.toPath())
-                .filter(line->!line.contains("\"memberName\":" + "\""+dao.getMemberName()+"\"," +
-                        "\"address\":" + "\"" + dao.getAddress()+"\"," +
-                        "\"uploadFileName\":" + "\"" +dao.getUploadFileName()+"\"," +
-                        "\"storeFileName\":" + "\"" +dao.getStoreFileName()+"\""))
+                .filter(line->!line.contains(
+                        JS_NAME + ":" + "\""+dao.getMemberName()+"\"," +
+                        JS_ADDRESS + ":" + "\"" + dao.getAddress()+"\"," +
+                        JS_UPLOAD_FILE + ":" + "\"" +dao.getUploadFileName()+"\"," +
+                        JS_STORE_FILE + ":" + "\"" +dao.getStoreFileName()+"\""))
                 .collect(Collectors.toList());
         Files.write(file.toPath(), out, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
     }
@@ -121,7 +123,7 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
     public void deleteOnFileByName(MemberDao dao) throws IOException {
             File file = prepareFileRead("fileDB");
             List<String> out = Files.lines(file.toPath())
-                    .filter(line->!line.contains("\"memberName\":" + "\""+dao.getMemberName()+"\""))
+                    .filter(line->!line.contains(JS_NAME + ":" + "\""+dao.getMemberName()+"\""))
                     .collect(Collectors.toList());
             Files.write(file.toPath(), out, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
     }
@@ -130,7 +132,7 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
     public void deleteOnFileById(MemberDao dao) throws IOException {
         File file = prepareFileRead("fileDB");
         List<String> out = Files.lines(file.toPath())
-                .filter(line->!line.contains("{\"id\":" + dao.getId()))
+                .filter(line->!line.contains("{" + JS_ID + ":" + dao.getId()))
                 .collect(Collectors.toList());
         Files.write(file.toPath(), out, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
     }
