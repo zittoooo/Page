@@ -2,11 +2,8 @@ package hello.mentoring.repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.JSONPObject;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import hello.mentoring.dao.MemberDao;
-import hello.mentoring.model.Member;
-import org.apache.tomcat.util.json.JSONParser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.*;
@@ -16,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class MemberFileRepositoryImpl implements MemberFileRepository {
     @Value("${file.dir}")
     private String fileDir;
@@ -28,15 +26,23 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
 
     private String filePath = fileDir + "fileDB";
 
-    private File prepareFileRead(String file) throws FileNotFoundException {
-        fileReader = new FileReader(fileDir + file);
+    private File prepareFileRead(String file) {
+        try {
+            fileReader = new FileReader(fileDir + file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         bufferedReader = new BufferedReader(fileReader);
         File openFile = new File(fileDir + file);
         return openFile;
     }
 
-    private BufferedWriter prepareFileWrite(String file) throws IOException {
-        fileWriter = new FileWriter(fileDir + file, true);
+    private BufferedWriter prepareFileWrite(String file) {
+        try {
+            fileWriter = new FileWriter(fileDir + file, true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         bufferedWriter = new BufferedWriter(fileWriter);
         return bufferedWriter;
     }
@@ -45,25 +51,32 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
     public void saveOnFile(MemberDao memberDao) throws IOException {
         bufferedWriter = prepareFileWrite("fileDB");
         ObjectMapper mapper = new ObjectMapper();
-        String jsonStr = mapper.writeValueAsString(memberDao);
+        String jsonStr = null;
+        try {
+            jsonStr = mapper.writeValueAsString(memberDao);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
         try {
             bufferedWriter.write(jsonStr);
             bufferedWriter.newLine();
             bufferedWriter.flush();
             bufferedWriter.close();
+//            throw new IOException();
         } catch (IOException e) {
             e.printStackTrace();
+            throw new IOException(jsonStr);
         }
     }
 
     @Override
-    public MemberDao findByIdOnFile(Long memberId) {
+    public MemberDao findByNameOnFile(MemberDao dao) {
         Optional<String> out = null;
         // 파일에서 해당 id를 가진 줄 찾기
         try {
             File file = prepareFileRead("fileDB");
             out = Files.lines(file.toPath())
-                    .filter(line -> line.contains("{\"id\":" + memberId))
+                    .filter(line -> line.contains("\"memberName\":" + "\""+dao.getMemberName()+"\""))
                     .findAny();
             bufferedReader.close();
         } catch (IOException e) {
@@ -80,27 +93,45 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
         return memberDao;
     }
 
+    /**
+     * update 객체를 저장하고 업데이트 전 객체를 지운다
+     * @param find - 기존에 저장된 객체
+     * @param update - 새로 업데이트된 객체
+     * @throws IOException
+     */
     @Override
-    public void updateOnFile(MemberDao memberDao) {
-        try {
-            deleteOnFile(memberDao.getId());
-            saveOnFile(memberDao);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void updateOnFile(MemberDao find, MemberDao update) throws IOException {
+        saveOnFile(update);
+        deleteOnFile(find);
     }
 
     @Override
-    public void deleteOnFile(Long id){
-        try {
+    public void deleteOnFile(MemberDao dao) throws IOException {
+        File file = prepareFileRead("fileDB");
+        List<String> out = Files.lines(file.toPath())
+                .filter(line->!line.contains("\"memberName\":" + "\""+dao.getMemberName()+"\"," +
+                        "\"address\":" + "\"" + dao.getAddress()+"\"," +
+                        "\"uploadFileName\":" + "\"" +dao.getUploadFileName()+"\"," +
+                        "\"storeFileName\":" + "\"" +dao.getStoreFileName()+"\""))
+                .collect(Collectors.toList());
+        Files.write(file.toPath(), out, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    @Override
+    public void deleteOnFileByName(MemberDao dao) throws IOException {
             File file = prepareFileRead("fileDB");
             List<String> out = Files.lines(file.toPath())
-                    .filter(line-> !line.contains("{\"id\":" + id))
+                    .filter(line->!line.contains("\"memberName\":" + "\""+dao.getMemberName()+"\""))
                     .collect(Collectors.toList());
             Files.write(file.toPath(), out, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
+    @Override
+    public void deleteOnFileById(MemberDao dao) throws IOException {
+        File file = prepareFileRead("fileDB");
+        List<String> out = Files.lines(file.toPath())
+                .filter(line->!line.contains("{\"id\":" + dao.getId()))
+                .collect(Collectors.toList());
+        Files.write(file.toPath(), out, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
 }

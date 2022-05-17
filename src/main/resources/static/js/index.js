@@ -30,8 +30,8 @@ function remove() {
                     elem.parentElement.removeChild(elem);
                 }
             })
-
         })
+        location.reload();
     }).
     fail(function (error) {
         alert(JSON.stringify(error));

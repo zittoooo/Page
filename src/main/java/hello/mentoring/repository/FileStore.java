@@ -1,9 +1,8 @@
 package hello.mentoring.repository;
 
-import hello.mentoring.model.Member;
+import hello.mentoring.dao.MemberDao;
 import hello.mentoring.model.UploadFile;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -47,12 +46,12 @@ public class FileStore {
 
     /**
      * member의 파일 삭제
-     * @param member
+     * @param dao
      */
-    public void deleteFile(Member member) {
-        File file = new File(getFullPath(member.getAttachFile().getStoreFileName()));
+    public void deleteFile(MemberDao dao) {
+//        File file = new File(getFullPath(member.getAttachFile().getStoreFileName()));
 //        System.out.println(getFullPath(member.getAttachFile().getStoreFileName()));
-
+        File file = new File(getFullPath(dao.getStoreFileName()));
         if (file.exists()) {
             if (file.delete()) {
                 System.out.println("MemberService.deleteMember 파일 삭제 성공");
