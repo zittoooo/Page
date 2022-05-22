@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import hello.mentoring.model.Member;
 import org.springframework.web.servlet.ModelAndView;
@@ -69,7 +71,6 @@ public class MemberController {
         return "redirect:/basic/members";
     }
 
-
     // 회원 조회
     @GetMapping("/{memberId}")
     public String member(@PathVariable long memberId, Model model) {
@@ -88,16 +89,20 @@ public class MemberController {
 
     // 회원 추가
     @GetMapping("/add")
-    public String addForm() {
+    public String addForm(Model model) {
+        model.addAttribute("member", new MemberForm());
         return "addForm";
     }
 
     @PostMapping("/add")
-    public String saveMember(@ModelAttribute MemberForm form, RedirectAttributes redirectAttributes) throws IOException {
-        if (checkValidation(form) == false) {
+    public String saveMember(@Validated @ModelAttribute("member") MemberForm form, BindingResult bindingResult, RedirectAttributes redirectAttributes) throws IOException {
+        // 검증에 실패하면 다시 입력 폼으로
+        if (bindingResult.hasErrors()) {
+            log.info("errors = {}", bindingResult);
             return "addForm";
         }
-       Long savedId = memberService.save(form);
+        System.out.println(form);
+        Long savedId = memberService.save(form);
         redirectAttributes.addAttribute("memberId", savedId);
         redirectAttributes.addAttribute("status", true);
         return "redirect:/basic/members/{memberId}";
