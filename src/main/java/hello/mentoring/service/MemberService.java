@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+import static hello.mentoring.utils.Utils.*;
 
 @Transactional
 public class MemberService {
@@ -23,57 +24,6 @@ public class MemberService {
         this.memberRepository = memberRepository;
         this.fileStore = fileStore;
         this.memberFileRepository = fileRepository;
-    }
-
-    /**
-     * 사용자가 입력한 form내용을 Member로 변환
-     * @param form
-     * @return Member
-     * @throws IOException
-     */
-    public Member form2Member(MemberForm form) {
-        Member member = Member.builder()
-                .check(false)
-                .memberName(form.getMemberName())
-                .address(form.getAddress())
-                .build();
-        return member;
-    }
-
-    /**
-     * Member를 MemberForm으로 변환
-     * @param member
-     * @return MemberForm
-     */
-    public MemberForm member2Form(Member member){
-        return MemberForm.builder()
-                .check(false)
-                .id(member.getId())
-                .memberName(member.getMemberName())
-                .address(member.getAddress())
-                .fileName(member.getAttachFile().getUploadFileName())
-                .build();
-    }
-
-    public MemberDao member2Dao(Member m) {
-        MemberDao mDao = new MemberDao();
-        if (m.getId() != null) {
-            mDao.setId(m.getId());
-        }
-        mDao.setMemberName(m.getMemberName());
-        mDao.setAddress(m.getAddress());
-        mDao.setUploadFileName(m.getAttachFile().getUploadFileName());
-        mDao.setStoreFileName(m.getAttachFile().getStoreFileName());
-        return mDao;
-    }
-
-    public Member dao2Member(MemberDao dao) {
-        return Member.builder()
-                .id(dao.getId())
-                .memberName(dao.getMemberName())
-                .address(dao.getAddress())
-                .attachFile(new UploadFile(dao.getUploadFileName(), dao.getStoreFileName()))
-                .build();
     }
 
     /**
@@ -114,9 +64,12 @@ public class MemberService {
      * @return Member
      */
     public Long save(MemberForm form) throws IOException {
-        UploadFile uploadFile = fileStore.storeFile(form.getAttachFile());
+
         Member member = form2Member(form);
-        member.setAttachFile(uploadFile);
+        if (!form.getAttachFile().isEmpty()) {
+            UploadFile uploadFile = fileStore.storeFile(form.getAttachFile());
+            member.setAttachFile(uploadFile);
+        }
         memberFileRepository.saveOnFile(member2Dao(member));
         Long id = memberRepository.save(member2Dao(member));
         member.setId(id);

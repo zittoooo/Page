@@ -102,20 +102,30 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
      */
     @Override
     public void updateOnFile(MemberDao find, MemberDao update) throws IOException {
-        saveOnFile(update);
         deleteOnFile(find);
+        saveOnFile(update);
     }
 
     @Override
     public void deleteOnFile(MemberDao dao) throws IOException {
         File file = prepareFileRead("fileDB");
-        List<String> out = Files.lines(file.toPath())
-                .filter(line->!line.contains(
-                        JS_NAME + ":" + "\""+dao.getMemberName()+"\"," +
-                        JS_ADDRESS + ":" + "\"" + dao.getAddress()+"\"," +
-                        JS_UPLOAD_FILE + ":" + "\"" +dao.getUploadFileName()+"\"," +
-                        JS_STORE_FILE + ":" + "\"" +dao.getStoreFileName()+"\""))
-                .collect(Collectors.toList());
+
+        List<String> out;
+//        if (dao.getStoreFileName() == null) {
+//            out = Files.lines(file.toPath())
+//                    .filter(line->!line.contains(
+//                            JS_NAME + ":" + "\""+dao.getMemberName()+"\"," +
+//                                    JS_ADDRESS + ":" + "\"" + dao.getAddress()+"\"," +
+//                                    JS_UPLOAD_FILE + ":" + "null" +
+//                                    JS_STORE_FILE + ":" + "null"))
+//                    .collect(Collectors.toList());
+//        } else {
+            out = Files.lines(file.toPath())
+                    .filter(line->!line.contains(
+                            JS_NAME + ":" + "\""+dao.getMemberName()+"\""))
+                    .collect(Collectors.toList());
+//        }
+
         Files.write(file.toPath(), out, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
@@ -123,7 +133,7 @@ public class MemberFileRepositoryImpl implements MemberFileRepository {
     public void deleteOnFileByName(MemberDao dao) throws IOException {
             File file = prepareFileRead("fileDB");
             List<String> out = Files.lines(file.toPath())
-                    .filter(line->!line.contains(JS_NAME + ":" + "\""+dao.getMemberName()+"\""))
+                    .filter(line->!line.contains(JS_NAME + ":" + "\"" + dao.getMemberName() + "\""))
                     .collect(Collectors.toList());
             Files.write(file.toPath(), out, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
     }

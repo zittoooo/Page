@@ -36,7 +36,6 @@ public class MemberController {
 
     @ExceptionHandler
     public ModelAndView IOEx(IOException e) {
-//        System.out.println(e.getMessage());
         MemberDao memberDao = null;
         if (!e.getMessage().isEmpty()) {
             ObjectMapper mapper = new ObjectMapper();
@@ -120,15 +119,6 @@ public class MemberController {
     public String edit(@PathVariable Long memberId, @ModelAttribute MemberForm form) throws IOException {
         Member member = memberService.updateMember(memberId, form);
         return "redirect:/basic/members";
-    }
-
-    // 입력 안한 것 있을 때
-    private Boolean checkValidation(MemberForm form) {
-        if (form.getMemberName().isEmpty() || form.getAddress().isEmpty() || form.getAttachFile().isEmpty()) {
-            System.out.println("정확히 입력해 주세요.");
-            return false;
-        }
-        return true;
     }
 
 }
